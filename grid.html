@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Koyfin Embeds</title>
+    <style>
+        body {
+            background-color: cadetblue;
+        }
+
+        /* Basic container styling */
+        .container {
+            display: grid;
+            gap: 1px;
+            margin: 1px;
+            width: 100%;
+            height: 100vh;
+            padding: 0px;
+            box-sizing: border-box;
+            background-color: black;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Desktop layout: 2x2 grid */
+        @media (min-width: 668px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            iframe {
+                height: calc(50vh - px);
+            }
+        }
+
+        /* Mobile layout: single column */
+        @media (max-width: 667px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                height: auto;
+            }
+            iframe {
+                height: 50vh; /* Adjust height for better mobile view */
+            }
+        }
+
+ .top-bar {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    background-color: #333;
+    color: #fff;
+    padding: 1vh;
+    border: 0px none;
+    overflow: hidden;
+    position: relative;
+    width: auto;
+}
+    </style>
+</head>
+<script src="wheelzoom.js"></script>
+  <script src="config.js"></script>
+  <script>
+    var largeShow = 0;
+    var aIdx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+    // This function shows the embedded websites
+    function MenuOpt(num) {
+      // Stop refreshes
+      window.stop();
+      clearTimeout(getSlideId);
+      //
+      document.getElementById("FullScreen").style.display = "block";
+      document.getElementById("iFrameContainer").style.zIndex = 1;
+      document.getElementById("FullScreen").src = aURL[num][2];
+      document.getElementById("FullScreen").style.transform =
+        "scale(" + aURL[num][3] + ")";
+
+      if (aURL[num][1].toLowerCase() == "back") {
+        // Start refreshes
+        window.location.reload(true);
+        getSlideId = setInterval(() => slide(), 5000);
+        //
+        wheelzoom(document.querySelectorAll("img"));
+      } else if (aURL[num][1].toLowerCase() == "refresh") {
+        // Start refreshes
+        window.location.reload(true);
+        getSlideId = setInterval(() => slide(), 5000);
+        //
+      } else if (aURL[num][1].toLowerCase() == "help") {
+        alert(`Double click on an image to expand to full screen.
+Double click again to close full screen view.
+Right click on an image to display the next one.
+The content refreshes automatically every 5 minutes.
+`);
+      }
+    }
+
+    // This function shows the larger images when double click to enlarge
+    function larger(event) {
+      var targetElement = event.target || event.srcElement;
+      if (largeShow == 1) {
+        // Start refreshes
+        window.location.reload(true);
+        getSlideId = setInterval(() => slide(), 5000);
+        //
+        largeShow = 0;
+        document.getElementById("imgZoom").style.display = "none";
+        document.getElementById("imgZoom").style.zIndex = -2;
+      } else {
+        // Stop refreshes
+        window.stop();
+        clearTimeout(getSlideId);
+        //
+        largeShow = 1;
+        document.getElementById("imgZoom").style.display = "block";
+        document.getElementById("imgZoom").style.zIndex = 3;
+        document.getElementById("ImageLarge").src =
+          targetElement.style.backgroundImage
+            .replace(/^url\(["']?/, "")
+            .replace(/["']?\)$/, "");
+      }
+    }
+
+    // Manually rotate images
+    function rotate(event) {
+      event.preventDefault();
+      var targetElement = event.target || event.srcElement;
+      i = +targetElement.id.match(/\d+/)[0];
+      if (aIMG[i].length > 2) {
+        ++aIdx[i];
+        if (aIdx[i] > aIMG[i].length - 1) {
+          aIdx[i] = 1;
+        }
+        document.getElementById(targetElement.id).src = aIMG[i][aIdx[i]];
+      }
+    }
+
+    // Automatically rotate images
+    function slide() {
+      // get the locations with multiple images
+      aIMG.forEach(function (innerArray, i) {
+        if (aIMG[i].length > 2) {
+          ++aIdx[i];
+          if (aIdx[i] > aIMG[i].length - 1) {
+            aIdx[i] = 1;
+          }
+          // console.log("Image" + i, " ", aIMG[i][aIdx[i]]);
+          img = document.getElementById("Image" + i);
+          img.src = aIMG[i][aIdx[i]];
+          // img.style.opacity = 0;
+          // img.style.transform = "translateX(-100%)";
+        }
+      });
+      // setTimeout(() => {
+      //   aIMG.forEach(function (innerArray, i) {
+      //     if (aIMG[i].length > 2) {
+      //       console.log("Image" + i);
+      //       img = document.getElementById("Image" + i);
+      //       // img.style.opacity = 1;
+      //       // img.style.transform = "translateX(0)";
+      //       img.src = aIMG[i][aIdx[i]];
+      //     }
+      //   });
+      // }, 1000);
+    }
+
+    function start() {
+      // Get the parent div for Menu container
+      var parentDiv = document.getElementById("myMenu");
+      var parentDivR = document.getElementById("myMenuR");
+      // Append the new div to the parent div
+      aURL.forEach(function (innerArray, index) {
+        // Create a new div element
+        var newDiv = document.createElement("div");
+        newDiv.innerHTML = `<a href="#" style="background-color:#${innerArray[0]};" onclick="MenuOpt(${index})">${innerArray[1]}</a>`;
+        if (innerArray[4] == "R") {
+          // Set some properties for the new div
+          newDiv.id = "mySidenavR";
+          newDiv.className = "sidenavR";
+          parentDivR.appendChild(newDiv);
+        } else {
+          // Set some properties for the new div
+          newDiv.id = "mySidenav";
+          newDiv.className = "sidenav";
+          parentDiv.appendChild(newDiv);
+        }
+      });
+
+      // Get the parent div for Dashboard container
+      var parentDiv = document.getElementById("dash");
+      // Append the new div to the parent div
+      aIMG.forEach(function (innerArray, index) {
+        // Create a new div element
+        var newDiv = document.createElement("div");
+        // Set some properties for the new div
+newDiv.className = "image-container";
+
+
+
+
+
+// Check if innerArray[1] contains a YouTube link
+if (innerArray[1].includes("youtube.com") || innerArray[1].includes("youtu.be")) {
+    // Create an iframe element for YouTube video
+    var newIframe = document.createElement("iframe");
+    newIframe.width = "100%"; // Set desired width
+    newIframe.height = "100%"; // Set desired height
+    newIframe.src = innerArray[1].replace("watch?v=", "embed/"); // Convert YouTube link to embed format
+    newIframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    newIframe.allowFullscreen = true; // Allow fullscreen mode
+    newDiv.appendChild(newIframe);
+} else {
+    // Create a new img element if it's an image
+    var newImg = document.createElement("img");
+    newImg.id = `Image${index}`;
+    newImg.src = innerArray[1];
+    newImg.oncontextmenu = rotate;
+    newImg.ondblclick = larger;
+    newDiv.appendChild(newImg);
+}
+
+// Append the new div to the parent div
+parentDiv.appendChild(newDiv);
+        // Create a new div element for img title
+        var newTtl = document.createElement("div");
+        newTtl.className = "image-title";
+        newTtl.innerHTML = innerArray[0];
+        newDiv.appendChild(newTtl);
+      });
+
+      // assign wheelzoom functionality to all 12 images
+      wheelzoom(document.querySelectorAll("img"));
+
+      window.addEventListener("resize", function () {
+        "use strict";
+        window.location.reload();
+      });
+
+      getSlideId = setInterval(() => slide(), 30000);
+    }
+
+    // This function update the time on the top bar
+    function updateTopBar() {
+      const now = new Date();
+
+      const options = { weekday: "long", month: "long", day: "numeric" };
+
+      const localDate = now.toLocaleDateString("en-US", options);
+      const localTime = now.toLocaleTimeString("en-US", {
+        hour12: true,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short",
+      });
+
+      const utcDate = now.toISOString().slice(0, 10);
+      const utcTime = now.toISOString().slice(11, 19) + " UTC";
+
+      const topBarLeft = document.getElementById("topBarLeft");
+      topBarLeft.textContent = `${localDate} - ${localTime}`;
+      const topBarCenter = document.getElementById("topBarCenter");
+      topBarCenter.textContent = topBarCenterText;
+      const topBarRight = document.getElementById("topBarRight");
+      topBarRight.textContent = `${utcDate} ${utcTime}`;
+    }
+
+    // Update every second
+    setInterval(updateTopBar, 1000);
+
+  </script>
+<body>
+ 
+
+    <div class="container">
+        <!-- Each iframe loads the Koyfin website -->
+        <iframe width="650" height="450" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=7&overlay=radar&product=radar&level=surface&lat=30.501&lon=-87.879" frameborder="0"></iframe>
+        <iframe src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=default&zoom=3&overlay=currents&product=cmems&level=surface&lat=36.457&lon=-77.344&message=true" frameborder="0"" allowfullscreen></iframe>
+        <iframe width="650" height="450" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=mph&zoom=5&overlay=satellite&product=satellite&level=surface&lat=27.606&lon=-87.891&detailLat=27.332735136859146&detailLon=-91.1865234375" frameborder="0"></iframe>
+        <iframe width="650" height="450" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=°F&metricWind=mph&zoom=4&overlay=wind&product=ecmwf&level=100m&lat=32.769&lon=-91.67&message=true" frameborder="0"></iframe>
+    </div>
+</body>
+</html>
